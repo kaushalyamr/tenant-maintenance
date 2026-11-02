@@ -1,0 +1,23 @@
+{
+  "name": "@tenant/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch --env-file=.env src/server.js",
+    "start": "node --env-file=.env src/server.js",
+    "seed": "node --env-file=.env src/seed.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "cookie-parser": "1.4.7",
+    "express": "4.21.2",
+    "jsonwebtoken": "9.0.3",
+    "mongoose": "9.11.4",
+    "multer": "2.5.0",
+    "zod": "4.6.7"
+  }
+}

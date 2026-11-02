@@ -1,0 +1,19 @@
+{
+  "name": "tenant-maintenance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tenant maintenance triage and dispatch: emergency intake, burst-pipe vs leak triage, guided shutoff and licensed-contractor dispatch",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace apps/api",
+    "dev:web": "npm run dev --workspace apps/web",
+    "start:api": "npm run start --workspace apps/api",
+    "seed": "npm run seed --workspace apps/api",
+    "test": "npm run test --workspace apps/api",
+    "build": "npm run build --workspace apps/web"
+  },
+  "license": "UNLICENSED"
+}
