@@ -89,7 +89,17 @@ test('allowed actions are the exact set the API will accept for a role', () => {
     CASE_ACTION.START_MITIGATION,
     CASE_ACTION.CANCEL,
   ]);
-  assert.deepEqual(allowedActions(CASE_STATE.DISPATCHED, [ROLE.CONTRACTOR]), [CASE_ACTION.ACCEPT_JOB]);
+  assert.deepEqual(allowedActions(CASE_STATE.DISPATCHED, [ROLE.CONTRACTOR]), [
+    CASE_ACTION.ACCEPT_JOB,
+    CASE_ACTION.WITHDRAW,
+  ]);
+});
+
+test('a declined dispatch sends the case back to the queue, not to closed', () => {
+  assert.equal(
+    transition({ state: CASE_STATE.DISPATCHED, action: CASE_ACTION.WITHDRAW, actorRoles: [ROLE.CONTRACTOR] }),
+    CASE_STATE.TRIAGED,
+  );
 });
 
 test('an unrecognised action is rejected instead of ignored', () => {
