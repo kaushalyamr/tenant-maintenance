@@ -5,8 +5,10 @@ import { config } from '../config.js';
 import { AGGRAVATORS_V1, RULES_V1 } from '../domain/triage-v1.js';
 import { requireAuth, requireRole } from '../http/auth.js';
 import { asyncHandler } from '../http/errors.js';
+import { validateBody } from '../http/validate.js';
 import { MITIGATION_SCRIPTS, SCRIPT_ORDER } from '../domain/mitigation.js';
 import { interpretRelay, relayDirectives } from '../services/conversation-relay.js';
+import { relaySchema } from '../validation/schemas.js';
 
 export const metaRouter = Router();
 
@@ -68,6 +70,7 @@ metaRouter.post(
   '/call/relay',
   requireAuth,
   requireRole('dispatcher', 'admin'),
+  validateBody(relaySchema),
   asyncHandler(async (req, res) => {
     const interpreted = interpretRelay(req.body);
     res.json({ ...interpreted, ...relayDirectives(interpreted.signals, config.triage) });

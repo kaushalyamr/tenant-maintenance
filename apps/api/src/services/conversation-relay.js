@@ -7,12 +7,14 @@ export const RELAY_PROTOCOL = 'call-intake-v1';
 // Deterministic lexical fallback: a telephony provider sends a transcript, and
 // these phrases map it onto the same signals the on-screen questionnaire
 // collects. Explicit `answers` always win over inferred wording.
+// Stems, not whole words: callers say "spraying" and "dripping", and a trailing
+// \b would silently fail to match those forms.
 const FLOW_PHRASES = [
-  [FLOW.GUSHING, /\b(gush|spray|burst|jet|pouring|flood|shooting)\b/i],
-  [FLOW.POOLING, /\b(pool|standing water|puddle|flooded floor|water everywhere)\b/i],
-  [FLOW.STEADY, /\b(stream|trickle|running tap|steady|keeps coming)\b/i],
-  [FLOW.DRIP, /\b(drip|drop|leak slowly|occasional|every few)\b/i],
-  [FLOW.NONE, /\b(no water|not water|dry|stopped leaking)\b/i],
+  [FLOW.GUSHING, /\b(gush|spray|burst|jet|pour|flood|shoot)/i],
+  [FLOW.POOLING, /\b(pool|puddle|standing water|water everywhere|flooded)/i],
+  [FLOW.STEADY, /\b(stream|trickle|steady|running|keeps coming)/i],
+  [FLOW.DRIP, /\b(drip|drop|slow leak|seep|occasional|every few)/i],
+  [FLOW.NONE, /\b(no water|not water|dry|stopped leaking)/i],
 ];
 
 const YES = /^(y|yes|sure|correct|affirmative|it is|there is)\b/i;

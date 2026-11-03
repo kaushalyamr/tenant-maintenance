@@ -126,3 +126,27 @@ export const contractorSchema = z.object({
   rating: z.coerce.number().min(0).max(5).default(4.5),
   coverageZones: z.array(z.string().trim().min(1).max(60)).min(1, 'List at least one coverage zone.'),
 });
+
+// A telephony bridge may send only a transcript, only structured answers, or both.
+export const relaySchema = z.object({
+  callId: z.string().trim().max(80).optional(),
+  transcript: z.string().trim().max(5000).optional(),
+  evidenceUploaded: z.boolean().optional(),
+  answers: z
+    .object({
+      water: z.union([z.boolean(), z.string().max(40)]).optional(),
+      flow: z.enum([FLOW.NONE, FLOW.DRIP, FLOW.STEADY, FLOW.GUSHING, FLOW.POOLING, FLOW.UNSURE]).optional(),
+      spreading: z.union([z.boolean(), z.string().max(40)]).optional(),
+      nearElectrical: z.union([z.boolean(), z.string().max(40)]).optional(),
+      ceilingOrWallDamage: z.union([z.boolean(), z.string().max(40)]).optional(),
+      sourceKnown: z.union([z.boolean(), z.string().max(40)]).optional(),
+      hotWaterOrBrown: z.union([z.boolean(), z.string().max(40)]).optional(),
+      sewage: z.union([z.boolean(), z.string().max(40)]).optional(),
+      gasOrSmoke: z.union([z.boolean(), z.string().max(40)]).optional(),
+      shutoffAccessible: z.union([z.boolean(), z.enum([SHUTOFF.YES, SHUTOFF.NO, SHUTOFF.UNKNOWN])]).optional(),
+      vulnerableOccupant: z.union([z.boolean(), z.string().max(40)]).optional(),
+      affectedUnits: z.coerce.number().int().min(1).max(5000).optional(),
+    })
+    .strict()
+    .optional(),
+});
