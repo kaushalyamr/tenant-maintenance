@@ -8,7 +8,7 @@ process.env.WEB_ORIGIN = 'http://localhost:3000';
 process.env.EVIDENCE_DIR = './storage/test-evidence';
 
 const { connectDatabase, mongoose } = await import('../src/db.js');
-const { createApp } = await import('../src/app.js');
+const { createApp } = await import('../src/create-app.js');
 const { hashPassword } = await import('../src/http/auth.js');
 const { Case } = await import('../src/models/case.js');
 const { Contractor } = await import('../src/models/contractor.js');

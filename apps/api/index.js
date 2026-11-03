@@ -1,7 +1,8 @@
-// Vercel entrypoint. Vercel detects an Express app that exports itself as the
-// default export from one of a few well-known file names; this one wins over
-// src/app.js in the detection order because the API is mounted at /api.
-import { createApp } from './src/app.js';
+// Vercel entrypoint. The Express preset only accepts an entrypoint that
+// imports express directly, so this file names the dependency even though the
+// app itself is assembled in src/create-app.js.
+import express from 'express';
+import { createApp } from './src/create-app.js';
 import { connectDatabase } from './src/db.js';
 import { ensureEvidenceDir } from './src/services/evidence.js';
 

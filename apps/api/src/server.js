@@ -1,4 +1,4 @@
-import { createApp } from './app.js';
+import { createApp } from './create-app.js';
 import { config } from './config.js';
 import { connectDatabase } from './db.js';
 import { ensureEvidenceDir } from './services/evidence.js';
