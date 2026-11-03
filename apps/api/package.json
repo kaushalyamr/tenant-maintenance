@@ -7,7 +7,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "node --watch --env-file=.env src/server.js",
+    "dev": "node --watch-path=./src --env-file=.env src/server.js",
     "start": "node --env-file=.env src/server.js",
     "seed": "node --env-file=.env src/seed.js",
     "test": "node --test"

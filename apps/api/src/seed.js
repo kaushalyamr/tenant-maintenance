@@ -192,6 +192,8 @@ async function createUsers(units, contractors) {
     { name: 'Dilhani Jayasekara', email: 'dispatcher@greenmeadows.test', role: 'dispatcher' },
     { name: 'Building Admin', email: 'admin@greenmeadows.test', role: 'admin' },
     { name: 'Rapid Reroute Desk', email: 'desk@rapidreroute.test', role: 'contractor', contractor: contractors['rapid'] },
+    { name: 'DrainWorks Dispatch', email: 'dispatch@drainworks.test', role: 'contractor', contractor: contractors['drainworks'] },
+    { name: 'Metro Emergency Desk', email: 'sos@metroemergency.test', role: 'contractor', contractor: contractors['metro'] },
     { name: 'Old Town Orders', email: 'orders@oldtown.test', role: 'contractor', contractor: contractors['old'] },
   ];
 
