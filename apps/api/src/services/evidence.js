@@ -1,11 +1,12 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { mkdir, readFile, rm } from 'node:fs/promises';
+import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import multer from 'multer';
 
 import { config } from '../config.js';
 import { CASE_STATE } from '../domain/case-state-machine.js';
 import { ConflictError, NotFoundError, ValidationError } from '../http/errors.js';
+import { EvidenceFile } from '../models/evidence-file.js';
 import { loadAccessibleCase } from './cases.js';
 
 // Only these types are accepted, and the stored extension comes from the type
@@ -19,20 +20,13 @@ const ACCEPTED = new Map([
 ]);
 
 export async function ensureEvidenceDir() {
-  await mkdir(config.evidence.dir, { recursive: true });
+  if (config.evidence.storage === 'disk') await mkdir(config.evidence.dir, { recursive: true });
 }
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, config.evidence.dir),
-  filename: (_req, file, cb) => {
-    const accepted = ACCEPTED.get(file.mimetype);
-    if (!accepted) return cb(new ValidationError('Only JPEG, PNG, WebP images or MP4/WebM video are accepted.'));
-    cb(null, `${Date.now()}-${randomBytes(8).toString('hex')}${accepted.ext}`);
-  },
-});
-
+// Always buffer the upload: the disk backend writes the buffer afterwards and
+// the Mongo backend inserts it, so there is only one validation path.
 export const evidenceUpload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: config.evidence.maxBytes, files: 1 },
   fileFilter: (_req, file, cb) => {
     if (!ACCEPTED.has(file.mimetype)) {
@@ -41,6 +35,29 @@ export const evidenceUpload = multer({
     cb(null, true);
   },
 });
+
+async function storeFile(storedName, mime, data) {
+  if (config.evidence.storage === 'mongo') {
+    await EvidenceFile.create({ storedName, mime, bytes: data.byteLength, data });
+    return;
+  }
+  await writeFile(join(config.evidence.dir, storedName), data);
+}
+
+// A lean Mongoose query returns BSON Binary rather than a Node Buffer.
+function asBuffer(value) {
+  if (Buffer.isBuffer(value)) return value;
+  if (value?.buffer) return Buffer.from(value.buffer);
+  return Buffer.from(value);
+}
+
+async function discardFile(storedName) {
+  if (config.evidence.storage === 'mongo') {
+    await EvidenceFile.deleteOne({ storedName });
+    return;
+  }
+  await rm(join(config.evidence.dir, storedName), { force: true });
+}
 
 function safeName(name) {
   return String(name ?? 'evidence').replace(/[^\w.\- ]+/g, '_').slice(0, 140) || 'evidence';
@@ -61,13 +78,16 @@ export async function attachEvidence(id, user, file, { description, kind }) {
   }
 
   const stored = kind === 'note' ? null : ACCEPTED.get(file.mimetype);
-  const payload = kind === 'note' ? Buffer.from(description, 'utf8') : await readFile(file.path);
+  const payload = kind === 'note' ? Buffer.from(description, 'utf8') : file.buffer;
+  const storedName = stored ? `${Date.now()}-${randomBytes(8).toString('hex')}${stored.ext}` : null;
   const sha256 = createHash('sha256').update(payload).digest('hex');
+
+  if (storedName) await storeFile(storedName, file.mimetype, payload);
 
   doc.evidence.push({
     kind,
     originalName: kind === 'note' ? 'caller note' : safeName(file.originalname),
-    storedName: stored ? file.filename : null,
+    storedName,
     mime: stored ? file.mimetype : 'text/plain',
     bytes: stored ? file.size : payload.byteLength,
     sha256,
@@ -85,7 +105,7 @@ export async function attachEvidence(id, user, file, { description, kind }) {
     });
     await doc.save();
   } catch (error) {
-    if (file) await rm(file.path, { force: true });
+    if (storedName) await discardFile(storedName);
     throw error;
   }
 
@@ -97,11 +117,12 @@ export async function evidenceFile(id, evidenceId, user) {
   const item = doc.evidence.id(evidenceId);
   if (!item) throw new NotFoundError('No such evidence on this case.');
   if (!item.storedName) throw new NotFoundError('That evidence is a written note, not a file.');
-  return {
-    path: join(config.evidence.dir, item.storedName),
-    mime: item.mime,
-    bytes: item.bytes,
-    kind: item.kind,
-    capturedAt: item.capturedAt,
-  };
+
+  const base = { mime: item.mime, bytes: item.bytes, kind: item.kind, capturedAt: item.capturedAt };
+  if (config.evidence.storage === 'mongo') {
+    const stored = await EvidenceFile.findOne({ storedName: item.storedName }).lean();
+    if (!stored) throw new NotFoundError('The stored evidence file is missing.');
+    return { ...base, buffer: asBuffer(stored.data) };
+  }
+  return { ...base, path: join(config.evidence.dir, item.storedName) };
 }

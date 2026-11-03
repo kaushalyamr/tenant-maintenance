@@ -50,6 +50,10 @@ Open <http://localhost:3000>. `npm test` runs the suite; `npm run build` builds
 the front end for production and `npm run start:api` runs the API without watch
 mode.
 
+**Deploying:** the API and the web app ship as two Vercel projects. Step-by-step
+instructions, environment variables and the remote-MongoDB requirement are in
+[`docs/deployment.md`](docs/deployment.md).
+
 ## Demo logins
 
 Seeded by `npm run seed`. Password for every account: `tenant1234`.
@@ -180,9 +184,10 @@ the fresh shortlist no longer contains is refused with that same reason.
 - Every request body, query string and path parameter is validated with Zod; the
   error response names the offending field. Mongo duplicate-key and cast errors are
   translated into `409`/`400` instead of leaking a stack trace.
-- Evidence is written to disk under a server-generated name with an extension
-  derived from the detected MIME type — never from the uploaded filename — and each
-  item stores a SHA-256 of its bytes.
+- Evidence is stored under a server-generated name with an extension derived from
+  the detected MIME type — never from the uploaded filename — and each item stores
+  a SHA-256 of its bytes. Bytes go to disk on a normal server and to MongoDB on a
+  serverless host, which has no persistent disk.
 - Because the local MongoDB runs standalone (no multi-document transactions), the
   dispatch flow compensates: the job is deleted if the case transition fails, and a
   unique index enforces one live job per case.
@@ -227,5 +232,5 @@ the fresh shortlist no longer contains is refused with that same reason.
   "unknown" and is transferred to a human by design.
 - Single-tenant deployment: the property register is global rather than scoped to
   an organisation. Multi-tenancy would key cases and contractors by organisation.
-- Evidence lives on local disk for the demo; production would use object storage
-  with signed URLs.
+- Evidence lives on local disk in development and in MongoDB on Vercel; a larger
+  deployment would use object storage with signed URLs.

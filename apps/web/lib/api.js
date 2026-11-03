@@ -1,4 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:4000';
+// Locally the API runs on its own port. In production it is proxied under this
+// app's /api path, so an empty base is correct and keeps cookies same-origin.
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000');
 
 export class ApiError extends Error {
   constructor(message, { status, code, details } = {}) {

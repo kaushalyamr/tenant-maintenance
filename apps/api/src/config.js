@@ -32,6 +32,13 @@ function boolean(name, fallback) {
 
 const production = process.env.NODE_ENV === 'production';
 
+// Serverless hosts (Vercel sets VERCEL=1) have no persistent disk, so evidence
+// defaults to MongoDB there. A normal server keeps writing files.
+const evidenceStorage = optional('EVIDENCE_STORAGE', process.env.VERCEL ? 'mongo' : 'disk');
+if (!['disk', 'mongo'].includes(evidenceStorage)) {
+  throw new Error(`EVIDENCE_STORAGE must be 'disk' or 'mongo', received '${evidenceStorage}'`);
+}
+
 export const config = Object.freeze({
   production,
   port: integer('PORT', 4000),
@@ -45,6 +52,7 @@ export const config = Object.freeze({
   // restricted to exactly the one front end we expect.
   webOrigin: optional('WEB_ORIGIN', 'http://localhost:3000'),
   evidence: Object.freeze({
+    storage: evidenceStorage,
     dir: optional('EVIDENCE_DIR', './storage/evidence'),
     maxBytes: integer('EVIDENCE_MAX_BYTES', 15_728_640),
   }),

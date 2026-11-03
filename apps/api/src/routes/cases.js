@@ -114,6 +114,7 @@ caseRouter.get(
     res.setHeader('Content-Type', item.mime);
     res.setHeader('Content-Length', item.bytes);
     res.setHeader('Cache-Control', 'private, max-age=300');
+    if (item.buffer) return res.end(item.buffer);
     createReadStream(item.path).on('error', () => res.destroy()).pipe(res);
   }),
 );
