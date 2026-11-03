@@ -29,6 +29,13 @@ import {
 } from '../validation/schemas.js';
 
 const idParam = validateParams(z.object({ id: z.string().length(24, 'That is not a case reference.') }));
+// validateParams replaces req.params, so every param in the path must be declared.
+const evidenceParam = validateParams(
+  z.object({
+    id: z.string().length(24, 'That is not a case reference.'),
+    evidenceId: z.string().length(24, 'That is not an evidence reference.'),
+  }),
+);
 
 export const caseRouter = Router();
 
@@ -101,7 +108,7 @@ caseRouter.post(
 
 caseRouter.get(
   '/:id/evidence/:evidenceId',
-  idParam,
+  evidenceParam,
   asyncHandler(async (req, res) => {
     const item = await evidenceFile(req.params.id, req.params.evidenceId, req.user);
     res.setHeader('Content-Type', item.mime);
