@@ -28,6 +28,10 @@ export default function LoginPage() {
   }, [user]);
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('mode') === 'register') setMode('register');
+  }, []);
+
+  useEffect(() => {
     if (mode !== 'register') return;
     api
       .get('/api/units')
